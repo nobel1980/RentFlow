@@ -190,3 +190,9 @@ supabase/
 - Notification Edge Functions resolve each recipient's locale independently before selecting localized templates.
 - PDF generation uses an embedded Bangla-capable font (e.g. Noto Sans Bengali) and a separately tested English font fallback.
 - PostgreSQL remains locale-neutral: numeric amounts in minor units, ISO dates, UTC timestamps, stable enum keys and stable IDs. Localization is a presentation concern.
+
+
+## 11. Implemented Flutter app shell & localization foundation (Phases 5 & 6)
+- Bootstrapped Flutter 3.50 / Dart 3.14 project in repository root with `flutter_riverpod`, `go_router`, `supabase_flutter`, `flutter_localizations`, and `intl`.
+- Bilingual localization generated from `lib/l10n/app_bn.arb` (default `bn_BD`) and `lib/l10n/app_en.arb` (`en`) into `lib/generated/l10n/app_localizations.dart`.
+- Core utilities: `MoneyFormatter` (exact integer minor-unit paisa to BDT `৳` without `double`), `EnvConfig` (refuses `service_role` or `sb_secret_` keys), `ApiErrorMapper` (maps every `P0001` backend error code to Bangla/English strings), `LocaleController` (defaults to `bn_BD` on first launch), `StatusBadge` (icon + text label + semantic color), `AsyncStateView` (loading/empty/error/retry), and `SeparateFundCards` (three distinct cards for Security Deposit, Prepaid Advance Rent, and Tenant Credit).

@@ -69,3 +69,8 @@ Agreement expiry reminders are for both owner and tenant. Create recipient-speci
 - Use localized month names, dates and BDT display formatting while retaining canonical IDs and amounts in payload data.
 - Push payloads should include stable `event_type`, entity IDs and deep-link route data; do not rely on translated title/body for app behavior.
 - Test Bangla glyph display in Android notification tray on supported Android versions and device manufacturers.
+
+
+## 9. Implemented database generators (migration 0010)
+- `generate_monthly_rent_reminders(p_run_date)` selects obligations whose actual `due_date` falls in `date_trunc('month', p_run_date)` and whose `outstanding_minor > 0` (so an arrears November obligation due 5 December is reminded on 1 December, never 1 November). Deduplication key: `rent_due:YYYY-MM:{obligation_id}:{recipient_profile_id}`.
+- `generate_agreement_expiry_reminders(p_run_date)` selects active/expiring agreements with `expiry_date` inside the 3-calendar-month window `[month_start, month_start + 3 months - 1 day]`. Deduplication key: `agr_expiry:YYYY-MM:{agreement_id}:{recipient_profile_id}`. Both functions are restricted to `service_role`.

@@ -182,3 +182,63 @@ Realtime is optional for MVP. Use it for owner dashboard refresh after a payment
 - Due date: advance = `due_day` of the billing month; arrears = `due_day` of the next month (`private.compute_due_date`). Rent and due date are snapshotted; existing rows are never updated, so later rent or due-day amendments affect only newly generated months.
 - No automatic proration: the first month uses the shop's entered monthly rent; use rent adjustments (Phase 11) for partial months.
 - Known limitation: there is no effective-dated rent-change table yet; changing `agreement_units.monthly_rent_minor` affects only months generated afterwards.
+
+
+## 13. Implemented in migration 0005 (rent adjustments)
+- `owner_create_rent_adjustment(obligation_id, type 'debit'|'credit', amount_minor, description, idempotency_key?)` and `owner_reverse_rent_adjustment(adjustment_id, reason, idempotency_key?)`: owner-only, row-locked, audited. Description/reason is mandatory; reversals are full-amount only, one per adjustment, and a reversal cannot be reversed.
+- Signed effect: debit +, credit -, reversal = opposite of the reversed entry. Adjusted payable = rent snapshot + net adjustments, exposed by the read-only view `rent_obligation_adjusted_payable` (security_invoker, so RLS applies to owner and tenant).
+- Never negative: an adjustment or reversal that would make adjusted payable < 0 or < amount already allocated (non-reversed payments) fails with `ADJUSTMENT_WOULD_NEGATE_RENT`. Void/waived obligations cannot be adjusted.
+- `rent_adjustments` is append-only (trigger blocks UPDATE/DELETE even for admin); a check constraint ties reversal rows to their original; a replayed idempotency key returns the original result, a different payload returns `IDEMPOTENCY_CONFLICT`.
+- Tenants can read adjustments (including descriptions) on their own obligations.
+- Error codes: `NOT_AUTHORIZED, VALIDATION_ERROR, OBLIGATION_NOT_FOUND, ADJUSTMENT_NOT_FOUND, ADJUSTMENT_ALREADY_REVERSED, ADJUSTMENT_WOULD_NEGATE_RENT, IDEMPOTENCY_CONFLICT`.
+
+
+## 14. Implemented in migration 0006 (payments)
+- `owner_post_payment(payload)`: payload `tenant_id, payment_date (not in the future), amount_minor, method, idempotency_key (required), reference_number?, note?, proof_storage_path?, allocations[{rent_obligation_id, amount_minor}]` (at least one line). Locks obligations in id order, verifies owner/tenant/status, allocation <= outstanding, sum <= amount (`PAYMENT_ALLOCATION_MISMATCH`), then inserts payment, allocations, tenant credit for any excess, receipt number (`RCT-000001`, gapless per owner) and an audit row in one transaction. Returns the receipt.
+- `owner_propose_oldest_due_first(tenant_id, amount_minor, agreement_ids?)`: read-only; order = due date, billing period, obligation id; returns lines plus `unallocated_minor`. Nothing is stored.
+- `owner_confirm_allocation_proposal(payload)`: same payload as posting (the owner may edit the proposal); revalidated under lock, so stale proposals fail with `ALLOCATION_EXCEEDS_OUTSTANDING`; strategy recorded as `oldest_due_first`.
+- `owner_reverse_payment(payment_id, reason)`: marks the payment reversed (allocations stop counting, nothing deleted), reverses the tenant credit it created; blocked with `PAYMENT_CREDIT_ALREADY_USED` if that would make the tenant credit balance negative.
+- `get_payment_receipt(payment_id)`: owner of the payment or the linked tenant.
+- View `rent_obligation_balances` (security invoker): adjusted payable, cash allocated, ledger applications, `outstanding_minor` and `derived_status` (void/waived, no_balance, paid, overdue, due, partially_paid, upcoming; Asia/Dhaka) plus `is_partially_paid`. The stored `rent_obligations.status` is not the source of truth.
+- Idempotency: same key + same payload returns the original receipt (`replayed: true`); different payload gives `IDEMPOTENCY_CONFLICT`.
+- Payments, allocations and all three ledgers are append-only (payments may only move posted to reversed). Private functions are no longer executable by clients by default.
+
+
+## 15. Implemented in migration 0007 (fund ledgers)
+- Three separate ledgers and balance views (never combined): `security_deposit_balances` (per agreement), `prepaid_rent_balances` (per tenant), `tenant_credit_balances` (per tenant); all security-invoker views.
+- RPCs (owner-only; payload includes a required `idempotency_key`): `owner_record_security_deposit` (agreement_id, amount_minor, reference_number?, description?), `owner_refund_security_deposit` (reason required in `description`), `owner_apply_security_deposit` (agreement_id, `authorization{confirmed:true, reason}`, allocations), `owner_record_prepaid_rent`, `owner_apply_prepaid_rent`, `owner_apply_tenant_credit` (tenant_id, allocations), `owner_reverse_fund_entry(fund, tx_id, reason)`.
+- Deposit application requires `agreements.security_deposit_application_allowed` (default false; changed only by audited amendment) plus explicit confirmation and reason, and applies only to obligations of the same agreement.
+- Apply RPCs lock the tenant row, then obligations in id order; amount <= fund balance and <= each obligation's outstanding. Reversals are full-amount, one per entry; a received entry cannot be reversed once its balance is used; overpayment credit is reversed only by reversing its payment.
+- Idempotency store `fund_operations` (server-only): replay returns the stored result (`replayed: true`); a different payload with the same key is `IDEMPOTENCY_CONFLICT`.
+- Error codes added: `INSUFFICIENT_SECURITY_DEPOSIT`, `INSUFFICIENT_PREPAID_RENT`, `INSUFFICIENT_TENANT_CREDIT`, `SECURITY_DEPOSIT_APPLICATION_NOT_AUTHORIZED`, `FUND_ENTRY_NOT_FOUND`, `FUND_ENTRY_ALREADY_REVERSED`, `FUND_BALANCE_ALREADY_USED`.
+- Deferred pending policy: prepaid-rent and tenant-credit refunds, manual tenant credit. Move-out settlement is Phase 15.
+- Adjustment guards now compare against cash plus ledger-applied amounts.
+
+
+## 16. Implemented in migration 0008 (termination notices)
+- `tenant_submit_termination_notice(payload)`: verified tenant only; payload `agreement_id, notice_type ('non_renewal'|'early_termination'), requested_termination_date?, agreement_unit_ids? (defaults to all active/planned units), reason?, idempotency_key?`.
+- `owner_acknowledge_termination_notice(notice_id, review_note?)`: owner-only; records `owner_acknowledged_at` and transitions `submitted -> acknowledged` without altering `served_at`.
+- `owner_record_notice_dispute_or_amendment(payload)`: owner-only; payload `notice_id, action ('under_review'|'disputed'|'mutually_amended'|'withdrawn'), reason, agreed_termination_date?`. `mutually_amended` records `agreed_termination_date` and an `agreement_amendments` row while preserving original `requested_termination_date` and `served_at`.
+- `tenant_request_notice_withdrawal(notice_id, reason)`: verified tenant only; transitions notice to `withdrawal_requested` for owner confirmation.
+- Every notice RPC emits localized `notification_events` snapshotting each recipient's `profiles.preferred_locale` independently.
+- Error codes added: `TENANT_PROFILE_NOT_LINKED`, `AGREEMENT_NOT_ACTIVE`, `NOTICE_NOT_ALLOWED_BY_AGREEMENT`, `NOTICE_PERIOD_NOT_MET`, `PARTIAL_TERMINATION_NOT_ALLOWED`, `ACTIVE_NOTICE_ALREADY_EXISTS`, `NOTICE_NOT_FOUND`, `INVALID_NOTICE_TRANSITION`.
+
+
+## 17. Implemented in migration 0009 (move-out & occupancy views)
+- `owner_complete_move_out(payload)`: owner-only; payload `idempotency_key (required), agreement_id, effective_move_out_date, agreement_unit_ids?, termination_notice_id?, ended_reason?, inspection_notes?, deposit_allocations? [{rent_obligation_id, amount_minor}], deposit_authorization? {confirmed:true, reason}, deposit_refund_minor?, unit_operational_status_after? ('active'|'maintenance'|'retired')`.
+- Views (security invoker): `unit_occupancy_status` (derives `occupied`, `reserved`, `vacant`, `maintenance`, `retired` in `Asia/Dhaka`) and `owner_unit_occupancy_history` (owner-only timeline of all current and ended assignments).
+- Error codes added: `POST_MOVE_OUT_OBLIGATION_HAS_SETTLEMENTS`.
+
+
+## 18. Implemented in migration 0010 (reports, dashboard, tenant portal & scheduled reminders)
+- `owner_get_dashboard_summary(p_as_of_date?)`: owner-only; returns active property count, unit occupancy breakdown, current-month billing accrual summary, current-month cash collection summary, total outstanding/overdue receivables, separate fund balances (`security_deposit_held_minor`, `prepaid_rent_held_minor`, `tenant_credit_held_minor`), expiring agreements within the 3-calendar-month window (with `within_90_days` flag), and pending termination notices.
+- `owner_get_financial_report(p_start_date, p_end_date, p_property_id?, p_tenant_id?, p_unit_id?)`: owner-only; separates billing-period accrual totals (`billing_accrual_totals`, `monthly_billing`, `tenant_statements`, `unit_statements`) from payment-date cash collection totals (`cash_collection_totals`, `cash_by_method`) and separate `fund_balances`. Reconciles `cash_received_minor = rent_allocated_minor + tenant_credit_created_minor` and excludes security deposits from rent cash collected.
+- `tenant_get_portal_summary()`: verified tenant only (zero client identity parameters; derived strictly from `auth.uid()`); returns own agreements, shops, obligations, payment receipts, three separate fund balances, notices, and unread notification count.
+- `generate_monthly_rent_reminders(p_run_date?)` and `generate_agreement_expiry_reminders(p_run_date?)`: `service_role` only; idempotent day-1 generators in `Asia/Dhaka` writing per-recipient deduplicated `notification_events` in each recipient's `preferred_locale`.
+
+
+## 19. Implemented in migration 0011 (tenant portal invitation & linking)
+- `owner_create_tenant_invite(p_tenant_id, p_expires_in_hours default 168)`: owner-only; generates an 8-character single-use invite code, stores only its hash (`code_hash`) in `tenant_invites`, supersedes any previous pending invite for that tenant, and returns `{invite_id, tenant_id, invite_code, expires_at}`.
+- `tenant_claim_invite(p_invite_code)`: authenticated `tenant` role only; validates active unexpired code, creates a verified `tenant_profile_links` row (`verified_at = now()`), marks the invite `claimed`, writes `audit_logs`, and emits localized notifications.
+- `owner_revoke_tenant_access(p_tenant_id, p_reason)`: owner-only; revokes active `tenant_profile_links` (`revoked_at = now()`, `revoked_by`, `revoked_reason`) and pending invites without deleting the tenant or any historical link/agreement/financial records. Partial unique indexes on active links allow the tenant to be re-linked to a new profile later.
+- Error codes added: `TENANT_ALREADY_LINKED`, `PROFILE_ALREADY_LINKED`, `INVITE_INVALID`, `INVITE_EXPIRED`.
