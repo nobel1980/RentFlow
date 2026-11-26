@@ -137,3 +137,24 @@ Never combine these into one generic advance total. Reports show each balance se
 - The language used for an owner notification is the owner's preference; the language used for a tenant notification is that tenant's preference.
 - A shared PDF/receipt generated for a tenant should offer an explicit language choice or use the recipient's preference; the financial content must be identical in both versions.
 - Localized date/number/currency formatting must not change the underlying due date, amount, payment allocation or ledger balance.
+
+
+## 14. Implemented status derivation (migration 0006)
+Server view `rent_obligation_balances` derives status: void/waived, `no_balance` (adjusted payable 0), `paid` (outstanding 0; never becomes overdue), `overdue` (due date before today in Asia/Dhaka), `due` (today), `partially_paid`, `upcoming`. `is_partially_paid` lets the UI show combined labels such as Partially paid + Overdue. A payment must include at least one rent allocation; money received for future rent uses the prepaid-rent ledger (Phase 13).
+
+
+## 15. Implemented tenant notice workflow (migration 0008)
+- Tenant submits via `tenant_submit_termination_notice(payload)`; tenant identity is derived strictly from `auth.uid()` and verified `tenant_profile_links`. Client-supplied `tenant_id`, `served_at`, and `notice_period_months` are ignored.
+- `minimum_effective_date` is calculated in `Asia/Dhaka` by adding `agreements.tenant_notice_period_months` (2 or 3 calendar months) to the server date and clamping to the target month's final day.
+- `non_renewal` ends on `agreements.expiry_date`. If `expiry_date >= minimum_effective_date`, `meets_notice_period = true` and status is `submitted`; if late, `meets_notice_period = false` and status is `under_review` (routed to owner review without rewriting expiry).
+- `early_termination` requires `agreements.early_termination_allowed = true` (else `NOTICE_NOT_ALLOWED_BY_AGREEMENT`) and `requested_termination_date >= minimum_effective_date` (else `NOTICE_PERIOD_NOT_MET`).
+- Selecting a subset of active shops requires `agreements.partial_unit_termination_allowed = true` (else `PARTIAL_TERMINATION_NOT_ALLOWED`).
+- Notices and `served_at` are immutable and cannot be deleted; withdrawal is a two-step audited workflow (`tenant_request_notice_withdrawal` -> owner confirmation via `owner_record_notice_dispute_or_amendment`).
+
+
+## 16. Implemented move-out, vacancy & re-letting rules (migration 0009)
+- `owner_complete_move_out(payload)` closes one or all active/planned shop assignments of an agreement on `effective_move_out_date` (partial selection requires `partial_unit_termination_allowed = true`).
+- Pre-generated rent obligations with `billing_period > date_trunc('month', effective_move_out_date)` on the closing units are voided if unpaid; if any post-move-out obligation already has cash or ledger allocations, the move-out is rejected with `POST_MOVE_OUT_OBLIGATION_HAS_SETTLEMENTS` until reversed.
+- Optional authorized security deposit application and deposit refund execute in the same transaction and are snapshotted into `move_out_settlements` along with `final_rent_due_minor`, `prepaid_rent_remaining_minor`, and `tenant_credit_remaining_minor`.
+- Linked `termination_notices` and `termination_notice_units` move to `completed`; when all units of an agreement are closed, the agreement moves to `expired` (if `effective_move_out_date >= expiry_date`) or `terminated`.
+- Every historical record is preserved; a subsequent tenant re-letting the shop after a non-overlapping date has zero visibility into previous tenants' records.

@@ -317,3 +317,13 @@ If existing rows are migrated, backfill `bn_BD`. Owner and tenant preferences be
 - Store event timestamps as `timestamptz` in UTC.
 - Store stable status/type keys (e.g. `paid`, `partial`, `due`) rather than Bangla or English labels.
 - Never store formatted values such as `৳১২,৫০০` or localized month names in financial columns.
+
+
+## Addendum: migration 0007
+- `agreements.security_deposit_application_allowed` (default false, amendable term). Ledger rows are shape-constrained: `applied` rows must reference an obligation, reversal rows must reference an original entry, deposit rows require an agreement. `fund_operations` stores idempotency results for ledger RPCs.
+
+
+## Addendum: migration 0009 (move-out & historical occupancy)
+- `no_overlapping_active_unit_occupancy` on `agreement_units` now covers `status in ('planned', 'active', 'ended')` so a re-let agreement can never back-date into an ended assignment's historical date range.
+- `move_out_settlements` adds `idempotency_key` and `settled_agreement_unit_ids uuid[]` and is append-only.
+- Triggers block hard `DELETE` on `agreements`, `agreement_units`, `rent_obligations`, `tenants`, `units`, and `properties`, and block any `UPDATE` on `agreement_units` once `status = 'ended'`.
