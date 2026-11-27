@@ -1,0 +1,38 @@
+# RentFlow Supabase Configuration
+project_id = "rentflow"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[auth]
+enabled = true
+site_url = "io.rentflow.app://login-callback"
+enable_signup = true
+
+[storage]
+enabled = true
+file_size_limit = "10MiB"
+
+[storage.buckets.agreements]
+public = false
+file_size_limit = "10MiB"
+allowed_mime_types = ["application/pdf", "image/jpeg", "image/png"]
+
+[storage.buckets.receipts]
+public = false
+file_size_limit = "5MiB"
+allowed_mime_types = ["application/pdf"]
+
+[functions.run-day1-scheduled-jobs]
+verify_jwt = true
+
+[functions.send-push-notifications]
+verify_jwt = true

@@ -74,3 +74,9 @@ Agreement expiry reminders are for both owner and tenant. Create recipient-speci
 ## 9. Implemented database generators (migration 0010)
 - `generate_monthly_rent_reminders(p_run_date)` selects obligations whose actual `due_date` falls in `date_trunc('month', p_run_date)` and whose `outstanding_minor > 0` (so an arrears November obligation due 5 December is reminded on 1 December, never 1 November). Deduplication key: `rent_due:YYYY-MM:{obligation_id}:{recipient_profile_id}`.
 - `generate_agreement_expiry_reminders(p_run_date)` selects active/expiring agreements with `expiry_date` inside the 3-calendar-month window `[month_start, month_start + 3 months - 1 day]`. Deduplication key: `agr_expiry:YYYY-MM:{agreement_id}:{recipient_profile_id}`. Both functions are restricted to `service_role`.
+
+
+## 10. Implemented Edge Functions & Delivery Worker (Phase 18)
+- `supabase/functions/run-day1-scheduled-jobs/index.ts`: invokes `generate_all_rent_obligations`, `generate_monthly_rent_reminders`, and `generate_agreement_expiry_reminders` on day 1 in `Asia/Dhaka`.
+- `supabase/functions/send-push-notifications/index.ts`: claims retryable push jobs via `claim_pending_notification_deliveries`, renders Bangla (`bn_BD`) or English (`en`) templates from `locale_snapshot`, and records delivery outcome via `record_notification_delivery_outcome`.
+- Flutter In-App Notification Inbox (`lib/features/notifications/`) displays recipient notifications and marks `read_at`.

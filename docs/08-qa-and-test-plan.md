@@ -135,3 +135,26 @@ Phases 16-18 SQL coverage (suite now 350 checks): billing-month accrual vs payme
 Phase 8 SQL coverage (suite now 368 checks): owner invite code hashing and superseding, owner-role and already-linked-profile claim rejection, superseded and expired invite rejection, case-insensitive claim and immediate portal activation, audited portal access revocation and immediate RLS revocation, tenant history preservation on revocation, re-linking a revoked tenant to a new profile while preserving historical link rows, and cross-owner/tenant isolation on invites.
 
 Phases 5 & 6 Flutter coverage (`flutter analyze` clean, 7/7 Dart unit & widget tests passing): integer minor-unit BDT formatting and Bangla/English digit parsing, `service_role` key rejection in `EnvConfig`, default `bn_BD` locale resolution, compact 360x800 screen at 1.3x text scale without layout overflow, three separate fund ledger cards, runtime Bangla/English switching, Owner and Tenant portal navigation shells, and bilingual error code mapping.
+
+Phases 7 & 8 Flutter coverage (`flutter analyze` clean, 11/11 Dart unit & widget tests passing): >10 shops inventory (no unit quota), re-let shop Occupancy History Timeline displaying both ended previous tenant and active current tenant with formatted BDT rents at 1.3x text scale without overflow, shop creation dialog, tenant invite generation and old-code superseding, invite claim, and portal access revocation preserving tenant balances and history.
+
+Phases 10-13 Flutter coverage (`flutter analyze` clean, 13/13 Dart unit & widget tests passing): multi-shop/multi-month oldest-due-first proposal ordering, 25,000 BDT payment against 20,000 BDT rent allocating 20,000 BDT and creating 5,000 BDT tenant credit atomically, over-allocation and rent-negating adjustment rejections, interactive Oldest-Due-First proposal review & confirmation flow at 1.3x text scale without overflow, and receipt modal display.
+
+Phases 14-17 Flutter coverage (`flutter analyze` clean, 17/17 Dart unit & widget tests passing): billing-period accrual vs payment-date cash collection separation and reconciliation verification, security deposit exclusion from rent cash collection, partial/early termination permission checks, notice period snapshot and immutable `servedAt`, two-step audited withdrawal request preserving the notice record, and compact 1.3x text-scale widget tests for both Reports and Tenant Notice Submission.
+
+Phases 18 & 19 SQL & Flutter coverage (SQL suite now 379/379 passing; Flutter suite now 19/19 passing, `flutter analyze` clean): notification delivery worker claiming, tokenless recipient `in_app` fallback, transient FCM failure retry up to `max_attempts = 3`, private storage path authorization (owner + verified linked tenant allowed; cross-owner, cross-tenant, unverified tenant, and malformed paths denied), bilingual Payment Receipt and Financial Report PDF generation (`%PDF-` byte stream verification in `bn_BD` and `en` without mutating minor-unit amounts), and In-App Notification Inbox widget test at 1.3x text scale.
+
+
+## 9. Phase 20 — Full SQA, Security Audit & Release Readiness Report
+- **Automated SQL & RLS Suite (supabase/tests/run.mjs):** **385/385 checks passing** across migrations  001– 012.
+- **Global Security Audit:**
+  - 100% of public tables have Row Level Security (RLS) enabled; non has zero table privileges.
+  - 100% of SECURITY DEFINER functions in public and private explicitly pin search_path = pg_catalog, public.
+  - Zero service_role or sb_secret_ keys exist in Flutter code (EnvConfig.validatePublishableKey enforces client-side rejection).
+  - Zero hard-deletes allowed on financial, agreement, occupancy, notice, or master tables (append-only and delete-block triggers active).
+- **Global Financial Invariant Audit:**
+  - All *_minor columns are exact igint integer paisa (int in Dart; zero floating-point money columns).
+  - Every obligation satisfies outstanding_minor = adjusted_payable_minor - cash_allocated_minor - ledger_applied_minor >= 0.
+  - Every posted payment satisfies eceived_amount_minor = sum(payment_allocations) + overpayment_credit_created.
+  - Security deposit, prepaid advance rent, and tenant credit ledgers are strictly separate and non-negative.
+- **Flutter Quality Gate (.github/workflows/ci.yml):** dart format --set-exit-if-changed . clean, lutter analyze clean (0 issues), **20/20 Dart unit, widget & full-journey tests passing** in both Bangla (n_BD, default) and English (en) at 1.3x text scale on compact Android screen dimensions.
