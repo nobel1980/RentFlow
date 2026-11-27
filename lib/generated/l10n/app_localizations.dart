@@ -392,6 +392,474 @@ abstract class AppLocalizations {
   /// **'Loading...'**
   String get loadingLabel;
 
+  /// No description provided for @cancelAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancelAction;
+
+  /// No description provided for @saveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get saveAction;
+
+  /// No description provided for @closeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get closeAction;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get filterAll;
+
+  /// No description provided for @filterActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get filterActive;
+
+  /// No description provided for @filterArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get filterArchived;
+
+  /// No description provided for @shopsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search shop code, name or floor...'**
+  String get shopsSearchHint;
+
+  /// No description provided for @addShopAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Shop'**
+  String get addShopAction;
+
+  /// No description provided for @addPropertyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Property'**
+  String get addPropertyAction;
+
+  /// No description provided for @shopCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop Code (e.g. S-12)'**
+  String get shopCodeLabel;
+
+  /// No description provided for @shopNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Display Name'**
+  String get shopNameLabel;
+
+  /// No description provided for @shopFloorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor / Section (Optional)'**
+  String get shopFloorLabel;
+
+  /// No description provided for @currentTenantLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Tenant'**
+  String get currentTenantLabel;
+
+  /// No description provided for @currentRentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Rent'**
+  String get currentRentLabel;
+
+  /// No description provided for @noActiveTenantLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Vacant — Ready for New Agreement'**
+  String get noActiveTenantLabel;
+
+  /// No description provided for @occupancyHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Occupancy History Timeline (Owner Only)'**
+  String get occupancyHistoryTitle;
+
+  /// No description provided for @occupancyHistorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every previous tenant, agreement, rent snapshot, and move-out record is permanently preserved when a shop becomes vacant.'**
+  String get occupancyHistorySubtitle;
+
+  /// No description provided for @historyStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Occupancy'**
+  String get historyStatusActive;
+
+  /// No description provided for @historyStatusEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Past Occupancy (Ended)'**
+  String get historyStatusEnded;
+
+  /// No description provided for @setMaintenanceAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Maintenance'**
+  String get setMaintenanceAction;
+
+  /// No description provided for @setActiveUnitAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark Available'**
+  String get setActiveUnitAction;
+
+  /// No description provided for @tenantsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search tenant name or phone...'**
+  String get tenantsSearchHint;
+
+  /// No description provided for @addTenantAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Tenant'**
+  String get addTenantAction;
+
+  /// No description provided for @tenantNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get tenantNameLabel;
+
+  /// No description provided for @tenantPhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get tenantPhoneLabel;
+
+  /// No description provided for @tenantAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Address / Notes (Optional)'**
+  String get tenantAddressLabel;
+
+  /// No description provided for @portalLinkedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Portal Linked'**
+  String get portalLinkedBadge;
+
+  /// No description provided for @portalNotLinkedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Linked'**
+  String get portalNotLinkedBadge;
+
+  /// No description provided for @generateInviteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Portal Invite Code'**
+  String get generateInviteAction;
+
+  /// No description provided for @inviteCodeDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Single-Use Tenant Invite Code'**
+  String get inviteCodeDialogTitle;
+
+  /// No description provided for @inviteCodeDialogSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share this 8-character code with the tenant. Previous pending codes are automatically superseded.'**
+  String get inviteCodeDialogSubtitle;
+
+  /// No description provided for @revokePortalAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke Portal Access'**
+  String get revokePortalAction;
+
+  /// No description provided for @revokeReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason for revoking portal access'**
+  String get revokeReasonLabel;
+
+  /// No description provided for @archiveTenantAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive Tenant Record'**
+  String get archiveTenantAction;
+
+  /// No description provided for @claimInviteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Link Tenant Portal Code'**
+  String get claimInviteAction;
+
+  /// No description provided for @enterInviteCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'8-Character Invite Code'**
+  String get enterInviteCodeLabel;
+
+  /// No description provided for @obligationsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop & Month Rent Obligations'**
+  String get obligationsSectionTitle;
+
+  /// No description provided for @dueDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Due Date'**
+  String get dueDateLabel;
+
+  /// No description provided for @billingPeriodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Billing Month'**
+  String get billingPeriodLabel;
+
+  /// No description provided for @baseRentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Base Rent Snapshot'**
+  String get baseRentLabel;
+
+  /// No description provided for @netAdjustmentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Net Adjustments'**
+  String get netAdjustmentLabel;
+
+  /// No description provided for @adjustedPayableLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjusted Payable'**
+  String get adjustedPayableLabel;
+
+  /// No description provided for @settledAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled'**
+  String get settledAmountLabel;
+
+  /// No description provided for @remainingDueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining Due'**
+  String get remainingDueLabel;
+
+  /// No description provided for @adjustRentAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust Rent'**
+  String get adjustRentAction;
+
+  /// No description provided for @adjustmentTypeDebit.
+  ///
+  /// In en, this message translates to:
+  /// **'Debit (Additional Charge)'**
+  String get adjustmentTypeDebit;
+
+  /// No description provided for @adjustmentTypeCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit (Discount)'**
+  String get adjustmentTypeCredit;
+
+  /// No description provided for @adjustmentAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjustment Amount (BDT)'**
+  String get adjustmentAmountLabel;
+
+  /// No description provided for @adjustmentReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Mandatory Reason / Description'**
+  String get adjustmentReasonLabel;
+
+  /// No description provided for @collectPaymentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect Multi-Shop / Multi-Month Payment'**
+  String get collectPaymentTitle;
+
+  /// No description provided for @paymentAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Received Payment Amount (BDT)'**
+  String get paymentAmountLabel;
+
+  /// No description provided for @paymentMethodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Method'**
+  String get paymentMethodLabel;
+
+  /// No description provided for @methodCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get methodCash;
+
+  /// No description provided for @methodBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Transfer'**
+  String get methodBank;
+
+  /// No description provided for @methodMfs.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile Financial Service (bKash/Nagad)'**
+  String get methodMfs;
+
+  /// No description provided for @proposeOldestDueAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Propose Oldest-Due-First'**
+  String get proposeOldestDueAction;
+
+  /// No description provided for @proposalReviewBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Review Proposed Allocations — Owner Confirmation Required Before Posting'**
+  String get proposalReviewBanner;
+
+  /// No description provided for @rentAllocatedTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Rent Allocated'**
+  String get rentAllocatedTotalLabel;
+
+  /// No description provided for @excessToTenantCreditLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Excess → Tenant Credit (Atomic)'**
+  String get excessToTenantCreditLabel;
+
+  /// No description provided for @confirmAndPostPaymentAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm & Post Payment'**
+  String get confirmAndPostPaymentAction;
+
+  /// No description provided for @receiptDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Receipt Posted'**
+  String get receiptDialogTitle;
+
+  /// No description provided for @receiptNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt No'**
+  String get receiptNumberLabel;
+
+  /// No description provided for @reportAccrualTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Billing-Period Accrual Report'**
+  String get reportAccrualTitle;
+
+  /// No description provided for @reportAccrualSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Obligations grouped by billing month (e.g. October rent paid in November is accrued to October).'**
+  String get reportAccrualSubtitle;
+
+  /// No description provided for @reportCashTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Collection by Payment Date'**
+  String get reportCashTitle;
+
+  /// No description provided for @reportCashSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual cash received during the selected payment dates (Security Deposits are excluded).'**
+  String get reportCashSubtitle;
+
+  /// No description provided for @cashReceivedTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Cash Received'**
+  String get cashReceivedTotalLabel;
+
+  /// No description provided for @reconciliationVerifiedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconciled: Cash Received = Rent Allocated + Tenant Credit Created'**
+  String get reconciliationVerifiedBanner;
+
+  /// No description provided for @monthlyAccrualBreakdownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Month-by-Month Accrual Breakdown'**
+  String get monthlyAccrualBreakdownTitle;
+
+  /// No description provided for @noticeSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Termination / Non-Renewal Notice'**
+  String get noticeSheetTitle;
+
+  /// No description provided for @noticeTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notice Type'**
+  String get noticeTypeLabel;
+
+  /// No description provided for @noticeTypeNonRenewal.
+  ///
+  /// In en, this message translates to:
+  /// **'Non-Renewal at Contract Expiry'**
+  String get noticeTypeNonRenewal;
+
+  /// No description provided for @noticeTypeEarlyTermination.
+  ///
+  /// In en, this message translates to:
+  /// **'Early Termination Request'**
+  String get noticeTypeEarlyTermination;
+
+  /// No description provided for @noticeReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason / Handover Note'**
+  String get noticeReasonLabel;
+
+  /// No description provided for @selectShopsToVacateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Shops Included in Notice'**
+  String get selectShopsToVacateLabel;
+
+  /// No description provided for @confirmSubmitNoticeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm & Serve Immutable Notice'**
+  String get confirmSubmitNoticeAction;
+
+  /// No description provided for @submittedNoticesTimelineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted Notices & Status Timeline'**
+  String get submittedNoticesTimelineTitle;
+
+  /// No description provided for @requestWithdrawalAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Withdrawal'**
+  String get requestWithdrawalAction;
+
   /// No description provided for @errorNotAuthorized.
   ///
   /// In en, this message translates to:

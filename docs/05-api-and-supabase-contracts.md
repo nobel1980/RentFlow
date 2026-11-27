@@ -242,3 +242,9 @@ Realtime is optional for MVP. Use it for owner dashboard refresh after a payment
 - `tenant_claim_invite(p_invite_code)`: authenticated `tenant` role only; validates active unexpired code, creates a verified `tenant_profile_links` row (`verified_at = now()`), marks the invite `claimed`, writes `audit_logs`, and emits localized notifications.
 - `owner_revoke_tenant_access(p_tenant_id, p_reason)`: owner-only; revokes active `tenant_profile_links` (`revoked_at = now()`, `revoked_by`, `revoked_reason`) and pending invites without deleting the tenant or any historical link/agreement/financial records. Partial unique indexes on active links allow the tenant to be re-linked to a new profile later.
 - Error codes added: `TENANT_ALREADY_LINKED`, `PROFILE_ALREADY_LINKED`, `INVITE_INVALID`, `INVITE_EXPIRED`.
+
+
+## 20. Implemented in migration 0012 (notification delivery worker & storage path authorization)
+- `claim_pending_notification_deliveries(p_limit default 50, p_max_attempts default 3)`: `service_role` only; claims pending/retryable `notification_events`, records `in_app` delivery, skips push for recipients without active `device_tokens`, and increments `attempt_count` on `notification_deliveries` (`channel = 'push'`).
+- `record_notification_delivery_outcome(p_delivery_id, p_succeeded, p_error?)`: `service_role` only; records push delivery outcome (`sent` or `failed`) and updates parent `notification_events.status`.
+- `can_access_agreement_document(p_storage_path)`: enforces `{owner_account_id}/{agreement_id}/{filename}` storage path authorization so only the agreement's authenticated owner or verified linked tenant is permitted.

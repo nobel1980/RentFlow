@@ -162,6 +162,247 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loadingLabel => 'Loading...';
 
   @override
+  String get cancelAction => 'Cancel';
+
+  @override
+  String get saveAction => 'Save';
+
+  @override
+  String get closeAction => 'Close';
+
+  @override
+  String get filterAll => 'All';
+
+  @override
+  String get filterActive => 'Active';
+
+  @override
+  String get filterArchived => 'Archived';
+
+  @override
+  String get shopsSearchHint => 'Search shop code, name or floor...';
+
+  @override
+  String get addShopAction => 'Add Shop';
+
+  @override
+  String get addPropertyAction => 'Add Property';
+
+  @override
+  String get shopCodeLabel => 'Shop Code (e.g. S-12)';
+
+  @override
+  String get shopNameLabel => 'Display Name';
+
+  @override
+  String get shopFloorLabel => 'Floor / Section (Optional)';
+
+  @override
+  String get currentTenantLabel => 'Current Tenant';
+
+  @override
+  String get currentRentLabel => 'Monthly Rent';
+
+  @override
+  String get noActiveTenantLabel => 'Vacant — Ready for New Agreement';
+
+  @override
+  String get occupancyHistoryTitle => 'Occupancy History Timeline (Owner Only)';
+
+  @override
+  String get occupancyHistorySubtitle =>
+      'Every previous tenant, agreement, rent snapshot, and move-out record is permanently preserved when a shop becomes vacant.';
+
+  @override
+  String get historyStatusActive => 'Active Occupancy';
+
+  @override
+  String get historyStatusEnded => 'Past Occupancy (Ended)';
+
+  @override
+  String get setMaintenanceAction => 'Set Maintenance';
+
+  @override
+  String get setActiveUnitAction => 'Mark Available';
+
+  @override
+  String get tenantsSearchHint => 'Search tenant name or phone...';
+
+  @override
+  String get addTenantAction => 'Add Tenant';
+
+  @override
+  String get tenantNameLabel => 'Full Name';
+
+  @override
+  String get tenantPhoneLabel => 'Phone Number';
+
+  @override
+  String get tenantAddressLabel => 'Address / Notes (Optional)';
+
+  @override
+  String get portalLinkedBadge => 'Portal Linked';
+
+  @override
+  String get portalNotLinkedBadge => 'Not Linked';
+
+  @override
+  String get generateInviteAction => 'Generate Portal Invite Code';
+
+  @override
+  String get inviteCodeDialogTitle => 'Single-Use Tenant Invite Code';
+
+  @override
+  String get inviteCodeDialogSubtitle =>
+      'Share this 8-character code with the tenant. Previous pending codes are automatically superseded.';
+
+  @override
+  String get revokePortalAction => 'Revoke Portal Access';
+
+  @override
+  String get revokeReasonLabel => 'Reason for revoking portal access';
+
+  @override
+  String get archiveTenantAction => 'Archive Tenant Record';
+
+  @override
+  String get claimInviteAction => 'Link Tenant Portal Code';
+
+  @override
+  String get enterInviteCodeLabel => '8-Character Invite Code';
+
+  @override
+  String get obligationsSectionTitle => 'Shop & Month Rent Obligations';
+
+  @override
+  String get dueDateLabel => 'Due Date';
+
+  @override
+  String get billingPeriodLabel => 'Billing Month';
+
+  @override
+  String get baseRentLabel => 'Base Rent Snapshot';
+
+  @override
+  String get netAdjustmentLabel => 'Net Adjustments';
+
+  @override
+  String get adjustedPayableLabel => 'Adjusted Payable';
+
+  @override
+  String get settledAmountLabel => 'Settled';
+
+  @override
+  String get remainingDueLabel => 'Remaining Due';
+
+  @override
+  String get adjustRentAction => 'Adjust Rent';
+
+  @override
+  String get adjustmentTypeDebit => 'Debit (Additional Charge)';
+
+  @override
+  String get adjustmentTypeCredit => 'Credit (Discount)';
+
+  @override
+  String get adjustmentAmountLabel => 'Adjustment Amount (BDT)';
+
+  @override
+  String get adjustmentReasonLabel => 'Mandatory Reason / Description';
+
+  @override
+  String get collectPaymentTitle => 'Collect Multi-Shop / Multi-Month Payment';
+
+  @override
+  String get paymentAmountLabel => 'Received Payment Amount (BDT)';
+
+  @override
+  String get paymentMethodLabel => 'Payment Method';
+
+  @override
+  String get methodCash => 'Cash';
+
+  @override
+  String get methodBank => 'Bank Transfer';
+
+  @override
+  String get methodMfs => 'Mobile Financial Service (bKash/Nagad)';
+
+  @override
+  String get proposeOldestDueAction => 'Propose Oldest-Due-First';
+
+  @override
+  String get proposalReviewBanner =>
+      'Review Proposed Allocations — Owner Confirmation Required Before Posting';
+
+  @override
+  String get rentAllocatedTotalLabel => 'Total Rent Allocated';
+
+  @override
+  String get excessToTenantCreditLabel => 'Excess → Tenant Credit (Atomic)';
+
+  @override
+  String get confirmAndPostPaymentAction => 'Confirm & Post Payment';
+
+  @override
+  String get receiptDialogTitle => 'Payment Receipt Posted';
+
+  @override
+  String get receiptNumberLabel => 'Receipt No';
+
+  @override
+  String get reportAccrualTitle => 'Billing-Period Accrual Report';
+
+  @override
+  String get reportAccrualSubtitle =>
+      'Obligations grouped by billing month (e.g. October rent paid in November is accrued to October).';
+
+  @override
+  String get reportCashTitle => 'Cash Collection by Payment Date';
+
+  @override
+  String get reportCashSubtitle =>
+      'Actual cash received during the selected payment dates (Security Deposits are excluded).';
+
+  @override
+  String get cashReceivedTotalLabel => 'Total Cash Received';
+
+  @override
+  String get reconciliationVerifiedBanner =>
+      'Reconciled: Cash Received = Rent Allocated + Tenant Credit Created';
+
+  @override
+  String get monthlyAccrualBreakdownTitle => 'Month-by-Month Accrual Breakdown';
+
+  @override
+  String get noticeSheetTitle => 'Submit Termination / Non-Renewal Notice';
+
+  @override
+  String get noticeTypeLabel => 'Notice Type';
+
+  @override
+  String get noticeTypeNonRenewal => 'Non-Renewal at Contract Expiry';
+
+  @override
+  String get noticeTypeEarlyTermination => 'Early Termination Request';
+
+  @override
+  String get noticeReasonLabel => 'Reason / Handover Note';
+
+  @override
+  String get selectShopsToVacateLabel => 'Select Shops Included in Notice';
+
+  @override
+  String get confirmSubmitNoticeAction => 'Confirm & Serve Immutable Notice';
+
+  @override
+  String get submittedNoticesTimelineTitle =>
+      'Submitted Notices & Status Timeline';
+
+  @override
+  String get requestWithdrawalAction => 'Request Withdrawal';
+
+  @override
   String get errorNotAuthorized =>
       'You are not authorized to perform this action.';
 

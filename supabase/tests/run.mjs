@@ -1481,5 +1481,108 @@ ok("owner B cannot invite or revoke owner A's tenant or see owner A's invites",
   await throwsMsg(() => revokeAcc(invTenant, 'x'), /TENANT_NOT_FOUND/) &&
   (await count(`select 1 from tenant_invites where tenant_id='${invTenant}'`)) === 0);
 
+// =====================================================================
+// 0012: notification delivery worker (retry & max attempts) & storage path authorization
+// =====================================================================
+console.log('\n[notification delivery worker & private storage path authorization]');
+await asUser(OWNER_A);
+ok('authenticated client cannot call service_role delivery worker RPCs',
+  await throwsMsg(() => db.query(`select claim_pending_notification_deliveries()`), /permission denied/i) &&
+  await throwsMsg(() => db.query(`select record_notification_delivery_outcome(gen_random_uuid(), true, null)`), /permission denied/i));
+
+// Register an active FCM token for TEN_A_U; leave OWNER_A without a device token
+await asUser(TEN_A_U);
+await db.query(`insert into device_tokens(profile_id,fcm_token,platform,active) values ($1,'fcm-token-tenant-a','android',true)`, [TEN_A_U]);
+
+await asAdmin();
+// Clear earlier test backlog so delivery worker tests inspect the new events deterministically
+await db.exec(`update notification_events set status='sent' where status='pending'`);
+// Create a fresh pending event for TEN_A_U (with token) and OWNER_A (without token)
+const evWithToken = (await one(`insert into notification_events(recipient_profile_id,event_type,locale_snapshot,title_key,body_key,dedupe_key,status)
+  values ('${TEN_A_U}','monthly_rent_reminder','en','t','b','deliv-test-1','pending') returning id`)).id;
+const evNoToken = (await one(`insert into notification_events(recipient_profile_id,event_type,locale_snapshot,title_key,body_key,dedupe_key,status)
+  values ('${OWNER_A}','monthly_rent_reminder','bn_BD','t','b','deliv-test-no-tok','pending') returning id`)).id;
+
+await db.exec(`set role service_role`);
+const claimed1 = (await one(`select claim_pending_notification_deliveries(100, 3) r`)).r;
+await asAdmin();
+const jobA = claimed1.find((j) => j.notification_event_id === evWithToken);
+ok('worker claims event for recipient with active FCM token and returns locale_snapshot and tokens',
+  jobA !== undefined && jobA.locale_snapshot === 'en' && jobA.fcm_tokens[0] === 'fcm-token-tenant-a' && jobA.attempt_count === 1);
+ok('recipient without FCM device token is marked sent (in_app only) without creating a push job',
+  claimed1.find((j) => j.notification_event_id === evNoToken) === undefined &&
+  (await one(`select status s from notification_events where id='${evNoToken}'`)).s === 'sent' &&
+  (await count(`select 1 from notification_deliveries where notification_event_id='${evNoToken}' and channel='in_app' and status='sent'`)) === 1);
+
+// Simulate 3 transient FCM failures on jobA -> stops retrying after max_attempts (3)
+await db.exec(`set role service_role`);
+await db.query(`select record_notification_delivery_outcome($1, false, 'FCM timeout 1')`, [jobA.delivery_id]);
+const retry2 = (await one(`select claim_pending_notification_deliveries(100, 3) r`)).r.find((j) => j.notification_event_id === evWithToken);
+await db.query(`select record_notification_delivery_outcome($1, false, 'FCM timeout 2')`, [jobA.delivery_id]);
+const retry3 = (await one(`select claim_pending_notification_deliveries(100, 3) r`)).r.find((j) => j.notification_event_id === evWithToken);
+await db.query(`select record_notification_delivery_outcome($1, false, 'FCM timeout 3')`, [jobA.delivery_id]);
+const retry4 = (await one(`select claim_pending_notification_deliveries(100, 3) r`)).r.find((j) => j.notification_event_id === evWithToken);
+await asAdmin();
+ok('transient FCM failure retries up to max_attempts (3) and stops claiming once exhausted',
+  retry2?.attempt_count === 2 && retry3?.attempt_count === 3 && retry4 === undefined &&
+  (await one(`select status s, last_error e from notification_deliveries where id='${jobA.delivery_id}'`)).e === 'FCM timeout 3');
+
+// Create another event for TEN_A_U and mark delivery succeeded
+const evSuccess = (await one(`insert into notification_events(recipient_profile_id,event_type,locale_snapshot,title_key,body_key,dedupe_key,status)
+  values ('${TEN_A_U}','agreement_expiry_reminder','en','t','b','deliv-test-ok','pending') returning id`)).id;
+await db.exec(`set role service_role`);
+const jobOk = (await one(`select claim_pending_notification_deliveries(100, 3) r`)).r.find((j) => j.notification_event_id === evSuccess);
+const outOk = (await one(`select record_notification_delivery_outcome($1, true, null) r`, [jobOk.delivery_id])).r;
+const claimAfterSent = (await one(`select claim_pending_notification_deliveries(100, 3) r`)).r.find((j) => j.notification_event_id === evSuccess);
+await asAdmin();
+ok('successful push delivery marks event and delivery sent and is never re-claimed',
+  outOk.status === 'sent' && claimAfterSent === undefined &&
+  (await one(`select status s from notification_events where id='${evSuccess}'`)).s === 'sent');
+
+// Private storage path authorization: '{owner_account_id}/{agreement_id}/{filename}'
+const validPath = `${OA}/${AG1}/signed-deed.pdf`;
+const canAccess = async (p) => (await one(`select can_access_agreement_document($1) ok`, [p])).ok;
+await asUser(OWNER_A);
+ok('owner A can access own agreement document path', (await canAccess(validPath)) === true);
+ok('malformed or cross-owner path is denied for owner A',
+  (await canAccess(`${OB}/${AGO}/deed.pdf`)) === false &&
+  (await canAccess('invalid/path')) === false);
+await asUser(TEN_A_U);
+ok('verified linked tenant A can access own agreement document path', (await canAccess(validPath)) === true);
+await asUser(TEN_B_U);
+ok("unrelated tenant B cannot access tenant A's agreement document path", (await canAccess(validPath)) === false);
+await asUser(TEN_C_U);
+ok('unverified tenant cannot access agreement document path', (await canAccess(validPath)) === false);
+await asUser(OWNER_B);
+ok("owner B cannot access owner A's agreement document path", (await canAccess(validPath)) === false);
+await asAdmin();
+
+// =====================================================================
+// Phase 20: Full SQA Global Security & Financial Invariant Audit
+// =====================================================================
+console.log('\n[Phase 20: global security & financial invariant audit]');
+await asAdmin();
+ok('every SECURITY DEFINER function in public and private pins search_path',
+  (await count(`select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+    where n.nspname in ('public','private') and p.prosecdef
+      and not exists (select 1 from unnest(coalesce(p.proconfig, '{}')) c where c like 'search_path=%')`)) === 0);
+ok('zero non-void obligations across the entire database have negative outstanding or negative adjusted payable',
+  (await count(`select 1 from rent_obligation_balances where derived_status not in ('void','waived') and (outstanding_minor < 0 or adjusted_payable_minor < 0)`)) === 0);
+ok('every obligation satisfies outstanding = adjusted_payable - cash_allocated - ledger_applied',
+  (await count(`select 1 from rent_obligation_balances where derived_status not in ('void','waived')
+    and outstanding_minor <> (adjusted_payable_minor - cash_allocated_minor - ledger_applied_minor)`)) === 0);
+ok('every posted payment reconciles received_amount = sum(allocations) + overpayment_credit_created',
+  (await count(`select 1 from payments p where p.status='posted' and p.received_amount_minor <> (
+    coalesce((select sum(pa.allocated_amount_minor) from payment_allocations pa where pa.payment_id=p.id),0) +
+    coalesce((select sum(tc.amount_minor) from tenant_credit_transactions tc where tc.source_payment_id=p.id and tc.transaction_type='created_from_overpayment'),0)
+  )`)) === 0);
+ok('every security deposit, prepaid rent, and tenant credit balance across all accounts is non-negative',
+  (await count(`select 1 from security_deposit_balances where balance_minor < 0`)) +
+  (await count(`select 1 from prepaid_rent_balances where balance_minor < 0`)) +
+  (await count(`select 1 from tenant_credit_balances where balance_minor < 0`)) === 0);
+ok('zero floating-point (float/real/double/numeric) money columns exist in public schema (all *_minor are bigint)',
+  (await count(`select 1 from information_schema.columns
+    where table_schema='public' and column_name like '%_minor' and data_type <> 'bigint'`)) === 0);
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

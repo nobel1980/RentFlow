@@ -5,6 +5,11 @@ import 'package:rentflow/core/locale/locale_controller.dart';
 import 'package:rentflow/core/money/money_formatter.dart';
 import 'package:rentflow/core/widgets/separate_fund_cards.dart';
 import 'package:rentflow/core/widgets/status_badge.dart';
+import 'package:rentflow/features/notifications/presentation/notifications_inbox_sheet.dart';
+import 'package:rentflow/features/payments/presentation/payments_screen.dart';
+import 'package:rentflow/features/reports/presentation/reports_screen.dart';
+import 'package:rentflow/features/tenants/presentation/tenants_screen.dart';
+import 'package:rentflow/features/units/presentation/units_screen.dart';
 import 'package:rentflow/generated/l10n/app_localizations.dart';
 
 /// Owner Dashboard and navigation shell (`RentFlow_Master_Blueprint.md` §13.3).
@@ -55,6 +60,12 @@ class _OwnerShellScreenState extends ConsumerState<OwnerShellScreen> {
         title: Text('${l10n.appTitle} · ${l10n.roleOwner}'),
         actions: <Widget>[
           IconButton(
+            key: const Key('owner_notifications_button'),
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+            onPressed: () => _showNotificationsSheet(context),
+            icon: const Icon(Icons.notifications_outlined),
+          ),
+          IconButton(
             key: const Key('owner_locale_toggle_button'),
             tooltip: l10n.languageLabel,
             constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
@@ -72,27 +83,7 @@ class _OwnerShellScreenState extends ConsumerState<OwnerShellScreen> {
         ],
       ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: <Widget>[
-            _buildBillingCard(context, l10n, localeCode),
-            const SizedBox(height: 16),
-            _buildOccupancyCard(context, l10n),
-            const SizedBox(height: 16),
-            SeparateFundCards(
-              securityDepositMinor: widget.securityDepositHeldMinor,
-              prepaidRentMinor: widget.prepaidRentHeldMinor,
-              tenantCreditMinor: widget.tenantCreditHeldMinor,
-            ),
-            const SizedBox(height: 20),
-            FilledButton.icon(
-              key: const Key('owner_record_payment_button'),
-              onPressed: () {},
-              icon: const Icon(Icons.payments_outlined),
-              label: Text(l10n.recordPaymentAction),
-            ),
-          ],
-        ),
+        child: _buildSelectedBody(context, l10n, localeCode),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
@@ -124,6 +115,69 @@ class _OwnerShellScreenState extends ConsumerState<OwnerShellScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _showNotificationsSheet(BuildContext context) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (BuildContext sheetContext) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.72,
+          maxChildSize: 0.92,
+          minChildSize: 0.45,
+          builder: (BuildContext context, ScrollController scrollController) {
+            return NotificationsInboxSheet(scrollController: scrollController);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildSelectedBody(
+    BuildContext context,
+    AppLocalizations l10n,
+    String localeCode,
+  ) {
+    if (_selectedIndex == 1) {
+      return const UnitsScreen();
+    }
+    if (_selectedIndex == 2) {
+      return const TenantsScreen();
+    }
+    if (_selectedIndex == 3) {
+      return const PaymentsScreen();
+    }
+    if (_selectedIndex == 4) {
+      return const ReportsScreen();
+    }
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: <Widget>[
+        _buildBillingCard(context, l10n, localeCode),
+        const SizedBox(height: 16),
+        _buildOccupancyCard(context, l10n),
+        const SizedBox(height: 16),
+        SeparateFundCards(
+          securityDepositMinor: widget.securityDepositHeldMinor,
+          prepaidRentMinor: widget.prepaidRentHeldMinor,
+          tenantCreditMinor: widget.tenantCreditHeldMinor,
+        ),
+        const SizedBox(height: 20),
+        FilledButton.icon(
+          key: const Key('owner_record_payment_button'),
+          onPressed: () {
+            setState(() {
+              _selectedIndex = 3;
+            });
+          },
+          icon: const Icon(Icons.payments_outlined),
+          label: Text(l10n.recordPaymentAction),
+        ),
+      ],
     );
   }
 

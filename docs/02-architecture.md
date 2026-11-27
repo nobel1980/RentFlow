@@ -196,3 +196,18 @@ supabase/
 - Bootstrapped Flutter 3.50 / Dart 3.14 project in repository root with `flutter_riverpod`, `go_router`, `supabase_flutter`, `flutter_localizations`, and `intl`.
 - Bilingual localization generated from `lib/l10n/app_bn.arb` (default `bn_BD`) and `lib/l10n/app_en.arb` (`en`) into `lib/generated/l10n/app_localizations.dart`.
 - Core utilities: `MoneyFormatter` (exact integer minor-unit paisa to BDT `৳` without `double`), `EnvConfig` (refuses `service_role` or `sb_secret_` keys), `ApiErrorMapper` (maps every `P0001` backend error code to Bangla/English strings), `LocaleController` (defaults to `bn_BD` on first launch), `StatusBadge` (icon + text label + semantic color), `AsyncStateView` (loading/empty/error/retry), and `SeparateFundCards` (three distinct cards for Security Deposit, Prepaid Advance Rent, and Tenant Credit).
+
+
+## 12. Implemented Phase 7 & Phase 8 UI/Data layer (Shops, Occupancy History & Tenant Linking)
+- `lib/features/units/`: `PropertyItem`, `ShopUnitItem`, `UnitOccupancyHistoryEntry`, `UnitsRepository` (`SupabaseUnitsRepository` reading `unit_occupancy_status` and `owner_unit_occupancy_history`, plus `InMemoryUnitsRepository`), `UnitsScreen` and `ShopDetailSheet` with search, status filter chips (`>= 48dp`), unlimited shop creation, maintenance status toggle, and the Owner-Only Occupancy History Timeline.
+- `lib/features/tenants/`: `TenantItem`, `TenantInviteResult`, `TenantsRepository` (`SupabaseTenantsRepository` calling `owner_create_tenant_invite`, `owner_revoke_tenant_access`, and `tenant_claim_invite`, plus `InMemoryTenantsRepository`), `TenantsScreen` and `TenantDetailSheet` with search, active/archived filter, archive (no hard-delete), separate fund cards, 8-character single-use invite dialog, and audited portal revocation dialog.
+
+
+## 13. Implemented Phases 10-13 UI/Data layer (Obligations, Adjustments, Oldest-Due-First Proposal & Receipts)
+- `lib/features/payments/`: `RentObligationItem`, `AllocationProposalLine`, `OldestDueProposalResult`, `PaymentReceiptResult`, `PaymentsRepository` (`SupabasePaymentsRepository` calling `rent_obligation_balances`, `owner_create_rent_adjustment`, `owner_propose_oldest_due_first`, `owner_confirm_allocation_proposal`, and `owner_post_payment`, plus `InMemoryPaymentsRepository`).
+- `PaymentsScreen` and `PaymentCollectionSheet`: shop/month obligation list with `StatusBadge`, debit/credit rent adjustment dialog with mandatory description, multi-shop/multi-month payment collection sheet with manual selection and Oldest-Due-First proposal preview banner (requiring owner confirmation before posting), live split preview (Rent Allocated vs Excess -> Tenant Credit), and receipt modal (`RCT-000001`).
+
+
+## 14. Implemented Phases 14-17 UI/Data layer (Reconciled Financial Reports & Tenant Notice Submission)
+- `lib/features/reports/`: `FinancialReportSummary`, `MonthlyBillingRow`, `ReportsRepository` (`SupabaseReportsRepository` calling `owner_get_financial_report`, plus `InMemoryReportsRepository`), and `ReportsScreen` separating Billing-Period Accrual from Payment-Date Cash Collection with a live reconciliation verification banner (`cashReceivedMinor == rentAllocatedMinor + tenantCreditCreatedMinor`) and `SeparateFundCards`.
+- `lib/features/notices/`: `TenantAgreementSummary`, `TenantAgreementUnitItem`, `TerminationNoticeItem`, `NoticesRepository` (`SupabaseNoticesRepository` calling `tenant_get_portal_summary`, `tenant_submit_termination_notice`, and `tenant_request_notice_withdrawal`, plus `InMemoryNoticesRepository`), and `NoticeSubmissionSheet` integrated into `TenantShellScreen` with the submitted notices status timeline.
